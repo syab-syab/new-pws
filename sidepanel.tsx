@@ -5,6 +5,7 @@ import { storageWordKey } from "~variables/storageWordKey"
 import { Header } from "~components/header"
 import { AddWordForm } from "~components/addWordForm"
 import { WordItem } from "~components/wordItem"
+// import { updateContextMenus } from "~background"
 
 
 function IndexSidePanel() {

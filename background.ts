@@ -1,185 +1,164 @@
 import type { Word } from "~models/Word"
 import { storageWordKey } from "~variables/storageWordKey"
 import { Storage } from "@plasmohq/storage"
-// なぜかエラーが出る↓のTab
 import type { Tab } from "@plasmohq/chrome"
 
-// ペースト機能の実装は今のところ難しそうだから
-// とりあえずドラッグコピペだけでも
 
 const storage = new Storage({
-  area: "sync" // "local"はローカル保存、"sync"はクラウド同期
+  area: "sync"
 });
 
-// Promiseオブジェクト
-// ローカルデータ読み込み
-async function loadData() {
+
+async function loadData(): Promise<Word[]> {
   const value: string = await storage.get(storageWordKey);
-  // return JSON.parse(value)
-  if (value) {
-    return JSON.parse(value)
-  } else {
-    return []
-  }
+  return value ? JSON.parse(value) : [];
 }
 
-// Promiseオブジェクト
-// ローカルに保存
 async function saveData(newWord: Word) {
-  const words: Promise<Array<Word | any>> = loadData()
-  words.then((val: Word | any) => {
-    let tmpArr = val
-    // 新しいワードを追加
-    tmpArr.push(newWord)
-    // localに格納
-    storage.set(storageWordKey, JSON.stringify(tmpArr))
-    console.log("データが保存されました")
-  })
+  const words = await loadData();
+  const updatedWords = [...words, newWord];
+  await storage.set(storageWordKey, JSON.stringify(updatedWords));
+  console.log("データが保存されました");
+  updateContextMenus(updatedWords); // 保存後にメニューを更新
 }
 
-// コンテキストメニューで
-// ドラッグしたワードを登録
-// 入力フォームにカーソルを合わせた際にお気に入りにしているワードをペースト
+// 新たな関数
+// コンテキストメニューを更新する関数
+export function updateContextMenus(words: Word[]) {
+  // 既存の動的メニューをクリア
+  chrome.contextMenus.removeAll(() => {
+    // 固定メニューを再作成
+    chrome.contextMenus.create({
+      id: "save-word",
+      title: "ドラッグしたワードを追加",
+      contexts: ["selection"]
+    });
+    chrome.contextMenus.create({
+      id: "save-fav-word",
+      parentId: "save-word",
+      title: "お気に入りに追加",
+      contexts: ["selection"]
+    });
+    chrome.contextMenus.create({
+      id: "save-normal-word",
+      parentId: "save-word",
+      title: "普通に追加",
+      contexts: ["selection"]
+    });
+    chrome.contextMenus.create({
+      id: "paste",
+      title: "ワード貼り付け",
+      contexts: ["editable"]
+    });
+    chrome.contextMenus.create({
+      id: "fav-paste",
+      parentId: "paste",
+      title: "お気に入りを貼り付け",
+      contexts: ["editable"]
+    });
+    chrome.contextMenus.create({
+      id: "normal-paste",
+      parentId: "paste",
+      title: "普通の貼り付け",
+      contexts: ["editable"]
+    });
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: "save-word",
-    title: "ドラッグしたワードを追加",
-    // selectionでドラッグしたときだけコンテキストメニュー表示
-    contexts: ["selection"]
-  })
-  chrome.contextMenus.create({
-    id: "save-fav-word",
-    parentId: "save-word",
-    title: "お気に入りに追加",
-    contexts: ["selection"]
-  })
-  chrome.contextMenus.create({
-    id: "save-normal-word",
-    parentId: "save-word",
-    title: "普通に追加",
-    contexts: ["selection"]
-  })
-  // 子要素でお気に入りのワードを列挙する
-  chrome.contextMenus.create({
-    id: "paste",
-    title: "ワード貼り付け",
-    // editableでinput要素にカーソルが合わさった時に発動
-    contexts: ["editable"]
-  })
-  chrome.contextMenus.create({
-    id: "fav-paste",
-    parentId: "paste",
-    title: "お気に入りを貼り付け",
-    contexts: ["editable"]
-  })
-  chrome.contextMenus.create({
-    id: "normal-paste",
-    parentId: "paste",
-    title: "普通の貼り付け",
-    contexts: ["editable"]
-  })
-  // ここで追加したワードが表示されない不具合が出てる
-  // chrome://extensions/ で再読み込みしないと表示されない
-  // 公式で「ワーカーは数秒間操作がないとアイドル状態になり、ブラウザは 5 分後にプロセスを完全に終了します。」
-  // とあるのでそれを何とか出来ればイケそう
-  loadData().then((val: Word | any) => {
-    let tmpArr: Word | any = val
-    tmpArr.map((d: Word | any) => {
-      // ここからさらにお気に入りと非お気に入りに分けたいので
-      // favの有無で分ける
-      if (d.fav === true) {
+    // 動的メニューを再生成
+    words.forEach((d: Word) => {
+      if (d.fav) {
         chrome.contextMenus.create({
           id: `fav-paste-${d.id}`,
           parentId: "fav-paste",
           title: `${d.word}`,
           contexts: ["editable"]
-        })
+        });
       } else {
         chrome.contextMenus.create({
           id: `normal-paste-${d.id}`,
           parentId: "normal-paste",
           title: `${d.word}`,
           contexts: ["editable"]
-        })
+        });
       }
-    })
-  })
-})
+    });
+  });
+}
 
 
+// 新たなコード
+// 初期化
+chrome.runtime.onInstalled.addListener(() => {
+  loadData().then(updateContextMenus);
+});
 
-// コンテキストメニューのidからwordのidを抜く正規表現1(substringの値は10)
+
+// ポップアップやサイドパネルからのメッセージを受信
+// 後でplasmo風に修正する
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "updateContextMenus") {
+    loadData().then((words) => {
+      updateContextMenus(words);
+      sendResponse({ status: "success" });
+    });
+    return true; // 非同期応答のためにtrueを返す
+  }
+});
+
+
 const regexFav = /fav-paste-[0-9]+/g
-// コンテキストメニューのidからwordのidを抜く正規表現2(substringの値は13)
 const regexNormal = /normal-paste-[0-9]+/g
 
 chrome.contextMenus.onClicked.addListener((info, tab: Tab | undefined) => {
   if (info.menuItemId === "save-fav-word") {
-    // console.log("save-fav-word")
-    // 型を整形する
     const newWord: Word = {
       id: Date.now(),
-      word: info.selectionText,
+      // ↓修正点
+      word: info.selectionText || "",
       fav: true
     }
     saveData(newWord)
   } else if(info.menuItemId === "save-normal-word") {
-    // console.log("save-normal-word")
-    // 型を整形する
     const newWord: Word = {
       id: Date.now(),
-      word: info.selectionText,
+      // ↓修正点
+      word: info.selectionText || "",
       fav: false
     }
     saveData(newWord)
   } else if (String(info.menuItemId).match(regexFav) && tab?.id) {
-    // お気に入り貼り付け
     const wordId: number = Number(String(info.menuItemId).substring(10))
-    loadData().then((val: Array<Word | any>) => {
-      const tmpArr: Array<Word | any> = val
-      // findを使ってid検索してペーストするワードを特定
-      const pasteWord: Word | any = tmpArr.find(v => v.id == wordId)
-      // 対象タブでスクリプトを実行
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: modifyInputElement,
-        // ペーストするワードを渡す
-        args: [pasteWord.word]
-      }, (results) => {
-        if (chrome.runtime.lastError) {
-          console.error("スクリプト実行エラー:", chrome.runtime.lastError)
-        } else {
-          console.log("スクリプト実行結果:", results)
-        }
-      })
+    //********************↓修正点
+    loadData().then((val: Word[]) => {
+      // const tmpArr: Array<Word | any> = val
+      // const pasteWord: Word | any = tmpArr.find(v => v.id == wordId)
+      const pasteWord = val.find(v => v.id === wordId);
+      // ↓修正点
+      if (pasteWord) {
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: modifyInputElement,
+          args: [pasteWord.word]
+        });
+      }
     })
   } else if (String(info.menuItemId).match(regexNormal) && tab?.id) {
-    // 非お気に入り貼り付け
     const wordId: number = Number(String(info.menuItemId).substring(13))
-    loadData().then((val: Array<Word | any>) => {
-      const tmpArr: Array<Word | any> = val
-      // findを使ってid検索してペーストするワードを特定
-      const pasteWord: Word | any = tmpArr.find(v => v.id == wordId)
-      // 対象タブでスクリプトを実行
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: modifyInputElement,
-        // ペーストするワードを渡す
-        args: [pasteWord.word]
-      }, (results) => {
-        if (chrome.runtime.lastError) {
-          console.error("スクリプト実行エラー:", chrome.runtime.lastError)
-        } else {
-          console.log("スクリプト実行結果:", results)
-        }
-      })
+    // *******************↓修正点
+    loadData().then((val: Word[]) => {
+      // const tmpArr: Array<Word | any> = val
+      // const pasteWord: Word | any = tmpArr.find(v => v.id == wordId)
+      const pasteWord = val.find(v => v.id === wordId);
+      if (pasteWord) {
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: modifyInputElement,
+          args: [pasteWord.word]
+        });
+      }
     })
   }
 })
 
-// ページ内で実行される関数
-// console.logの部分要らないかも
 function modifyInputElement(newValue: string) {
   const activeElement = document.activeElement
   if (activeElement && (activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA")) {
