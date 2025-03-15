@@ -10,7 +10,7 @@ import { WordItem } from "~components/wordItem"
 function IndexSidePanel() {
 
   // popup,sidepanel共通
-  const words = []
+  const words: Array<Word | any> = []
 
   // popup, sidepanel共通
   // useStorageの第二引数は初期値で、すでにstorageに値がある場合は無視されるっぽい
@@ -22,7 +22,7 @@ function IndexSidePanel() {
   // ワード追加
   const addWordArr = (val: string) => {
     // 配列をコピーしてから
-    const tmpArr = JSON.parse(wordArr).slice()
+    const tmpArr: Array<Word | any> = JSON.parse(wordArr).slice()
     // 型を整形する
     const tmpWord: Word = {
       id: Date.now(),
@@ -40,9 +40,9 @@ function IndexSidePanel() {
   const delWord = (id: number, val: string) => {
     if (confirm(`「${val}」を削除しますか？`)) {
       // 配列をコピーしてから
-      const tmpArr = JSON.parse(wordArr).slice()
+      const tmpArr: Array<Word | any> = JSON.parse(wordArr).slice()
       // 取得したid以外の要素で新しい配列をfilterで作る
-      const newArr = tmpArr.filter(a => a.id !== id)
+      const newArr: Array<Word | any> = tmpArr.filter(a => a.id !== id)
       // ストレージに格納
       setWordArr(JSON.stringify(newArr))
       alert(`「${val}」を削除しました。`)
@@ -52,9 +52,9 @@ function IndexSidePanel() {
   // お気に入り編集
   const toggleFav = (id: number) => {
     // 配列をコピーしてから
-    const tmpArr = JSON.parse(wordArr).slice()
+    const tmpArr: Array<Word | any> = JSON.parse(wordArr).slice()
     // 渡されたidの要素を編集する
-    tmpArr.map(v => {
+    tmpArr.map((v: Word) => {
       if (v.id === id) {
         v.fav = !v.fav
       }
@@ -68,7 +68,7 @@ function IndexSidePanel() {
     alert(`「${val}」をコピーしました。`)
   }
 
-  const localWordData: Array<Word | any> = JSON.parse(wordArr)
+  // const localWordData: Array<Word | any> = JSON.parse(wordArr)
   return (
     <>
       <Header />
@@ -90,11 +90,11 @@ function IndexSidePanel() {
             textAlign: "center"
           }}
         >
-          現在保管中のワード: {localWordData.length}
+          {/* 現在保管中のワード: {localWordData.length} */}
         </p>
         {
           // WordItemをmapで並べるとbuild時にエラーが出るっぽい
-          localWordData?.map((a: Word) => {
+          JSON.parse(wordArr)?.map((a: Word | any) => {
             return (
               // 基本一列にする
               <WordItem

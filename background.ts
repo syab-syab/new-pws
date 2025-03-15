@@ -14,7 +14,7 @@ const storage = new Storage({
 // Promiseオブジェクト
 // ローカルデータ読み込み
 async function loadData() {
-  const value = await storage.get(storageWordKey);
+  const value: string = await storage.get(storageWordKey);
   // return JSON.parse(value)
   if (value) {
     return JSON.parse(value)
@@ -26,12 +26,11 @@ async function loadData() {
 // Promiseオブジェクト
 // ローカルに保存
 async function saveData(newWord: Word) {
-  const words = loadData()
-  words.then((val) => {
+  const words: Promise<Array<Word | any>> = loadData()
+  words.then((val: Word | any) => {
     let tmpArr = val
     // 新しいワードを追加
     tmpArr.push(newWord)
-    // storage.setにawaitを付けていないせいかエラー発生 ← 解決したっぽい
     // localに格納
     storage.set(storageWordKey, JSON.stringify(tmpArr))
     console.log("データが保存されました")
@@ -80,9 +79,13 @@ chrome.runtime.onInstalled.addListener(() => {
     title: "普通の貼り付け",
     contexts: ["editable"]
   })
-  loadData().then(val => {
-    let tmpArr = val
-    tmpArr.map(d => {
+  // ここで追加したワードが表示されない不具合が出てる
+  // chrome://extensions/ で再読み込みしないと表示されない
+  // 公式で「ワーカーは数秒間操作がないとアイドル状態になり、ブラウザは 5 分後にプロセスを完全に終了します。」
+  // とあるのでそれを何とか出来ればイケそう
+  loadData().then((val: Word | any) => {
+    let tmpArr: Word | any = val
+    tmpArr.map((d: Word | any) => {
       // ここからさらにお気に入りと非お気に入りに分けたいので
       // favの有無で分ける
       if (d.fav === true) {
@@ -132,11 +135,11 @@ chrome.contextMenus.onClicked.addListener((info, tab: Tab | undefined) => {
     saveData(newWord)
   } else if (String(info.menuItemId).match(regexFav) && tab?.id) {
     // お気に入り貼り付け
-    const wordId = Number(String(info.menuItemId).substring(10))
-    loadData().then((val) => {
-      const tmpArr = val
+    const wordId: number = Number(String(info.menuItemId).substring(10))
+    loadData().then((val: Array<Word | any>) => {
+      const tmpArr: Array<Word | any> = val
       // findを使ってid検索してペーストするワードを特定
-      const pasteWord = tmpArr.find(v => v.id == wordId)
+      const pasteWord: Word | any = tmpArr.find(v => v.id == wordId)
       // 対象タブでスクリプトを実行
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
@@ -153,11 +156,11 @@ chrome.contextMenus.onClicked.addListener((info, tab: Tab | undefined) => {
     })
   } else if (String(info.menuItemId).match(regexNormal) && tab?.id) {
     // 非お気に入り貼り付け
-    const wordId = Number(String(info.menuItemId).substring(13))
-    loadData().then((val) => {
-      const tmpArr = val
+    const wordId: number = Number(String(info.menuItemId).substring(13))
+    loadData().then((val: Array<Word | any>) => {
+      const tmpArr: Array<Word | any> = val
       // findを使ってid検索してペーストするワードを特定
-      const pasteWord = tmpArr.find(v => v.id == wordId)
+      const pasteWord: Word | any = tmpArr.find(v => v.id == wordId)
       // 対象タブでスクリプトを実行
       chrome.scripting.executeScript({
         target: { tabId: tab.id },

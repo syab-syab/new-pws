@@ -2,9 +2,9 @@
 import styled from "styled-components"
 import delIcon from "data-base64:~assets/del-64.svg"
 
-const borderPx = "1px"
+const borderPx: string = "1px"
 
-const borderColor = "#838383"
+const borderColor: string = "#838383"
 
 
 const Wrapper = styled.div`
@@ -108,6 +108,7 @@ type Props = {
 }
 
 
+// ここだけsidepanelに移動してみる
 export const WordItem = (props: Props) => {
   return (
     <Wrapper>
@@ -127,7 +128,7 @@ export const WordItem = (props: Props) => {
           // () => props.onClickDel(props.delId, props.word)
           () => props.onClickDel(props.itemIndex, props.word)
         }>
-          <Image src={delIcon} alt="" />
+          <Image src={delIcon} />
         </WordItemDelBtn>
       </Item>
     </Wrapper>
