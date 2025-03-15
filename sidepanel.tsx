@@ -4,18 +4,35 @@ import type { Word } from "~models/Word"
 import { storageWordKey } from "~variables/storageWordKey"
 import { Header } from "~components/header"
 import { AddWordForm } from "~components/addWordForm"
-import { WordItem } from "~components/wordItem"
+import { 
+  Wrapper,
+  Item,
+  CheckboxWrapper,
+  Checkbox,
+  WordItemSpace,
+  WordItemDelBtn,
+  Image
+} from "~components/wordItem"
+import delIcon from "data-base64:~assets/del-64.svg"
 
 function IndexSidePanel() {
+  // ↓修正点
+  const words: Word[] = []; // 型を明確化
 
-  // popup,sidepanel共通
-  const words: Array<Word | any> = []
-
-  // popup, sidepanel共通
-  // useStorageの第二引数は初期値で、すでにstorageに値がある場合は無視されるっぽい
   const [wordArr, setWordArr] = useStorage<string>(storageWordKey, JSON.stringify(words))
   const [tmpData, setTmpData] = useState<string>("")
   const [propFav, setPropFav] = useState<string>("normal")
+
+  // 新しい関数
+  // parsedWordsを即時関数で定義し、JSON.parseのエラー処理を追加。
+  const parsedWords: Word[] = (() => {
+    try {
+      return JSON.parse(wordArr || "[]") as Word[];
+    } catch (e) {
+      console.error("wordArrのパースに失敗:", e);
+      return [];
+    }
+  })();
 
   // バックグラウンドへのメッセージング
   const handleUpdateMenus = () => {
@@ -31,33 +48,26 @@ function IndexSidePanel() {
     )
   }
 
-  // popup, sidepanel共通
-  // ワード追加
   const addWordArr = (val: string) => {
-    // 配列をコピーしてから
-    const tmpArr: Array<Word | any> = JSON.parse(wordArr).slice()
-    // 型を整形する
+    // const tmpArr: Array<Word | any> = JSON.parse(wordArr).slice()
+    const tmpArr = parsedWords.slice();
     const tmpWord: Word = {
       id: Date.now(),
       word: val,
-      fav: propFav === "fav" ? true : false
+      // fav: propFav === "fav" ? true : false
+      fav: propFav === "fav"
     }
-    // 値を格納
     tmpArr.push(tmpWord)
     setWordArr(JSON.stringify(tmpArr))
     handleUpdateMenus()
     setTmpData("")
-    // sidepanelとoptionsは状態の初期化とアラートは不要
   }
 
-  // ワード削除
   const delWord = (id: number, val: string) => {
     if (confirm(`「${val}」を削除しますか？`)) {
-      // 配列をコピーしてから
-      const tmpArr: Array<Word | any> = JSON.parse(wordArr).slice()
-      // 取得したid以外の要素で新しい配列をfilterで作る
-      const newArr: Array<Word | any> = tmpArr.filter(a => a.id !== id)
-      // ストレージに格納
+      // const tmpArr: Array<Word | any> = JSON.parse(wordArr).slice()
+      // const newArr: Array<Word | any> = tmpArr.filter(a => a.id !== id)
+      const newArr = parsedWords.filter(a => a.id !== id);
       setWordArr(JSON.stringify(newArr))
       handleUpdateMenus()
       alert(`「${val}」を削除しました。`)
@@ -66,27 +76,28 @@ function IndexSidePanel() {
 
 
 
-  // お気に入り編集
   const toggleFav = (id: number) => {
-    // 配列をコピーしてから
-    const tmpArr: Array<Word | any> = JSON.parse(wordArr).slice()
-    // 渡されたidの要素を編集する
-    tmpArr.map((v: Word) => {
-      if (v.id === id) {
-        v.fav = !v.fav
-      }
-    })
+    // const tmpArr: Array<Word | any> = JSON.parse(wordArr).slice()
+    const tmpArr = parsedWords.slice();
+    // tmpArr.map((v: Word) => {
+    //   if (v.id === id) {
+    //     v.fav = !v.fav
+    //   }
+    // })
+    tmpArr.forEach((v: Word) => {
+      if (v.id === id) v.fav = !v.fav;
+    });
     setWordArr(JSON.stringify(tmpArr))
     handleUpdateMenus()
   }
 
-  // コピー関数
   const copyWord = (val: string) => {
     navigator.clipboard.writeText(val)
     alert(`「${val}」をコピーしました。`)
   }
 
-  // const localWordData: Array<Word | any> = JSON.parse(wordArr)
+  // const limitedWords = parsedWords.slice(0, 100);
+
   return (
     <>
       <Header />
@@ -101,31 +112,30 @@ function IndexSidePanel() {
       <div
         style={{marginTop: "10px"}}
       >
-        <p
-          style={{
-            margin: "10px",
-            fontSize: "20px",
-            textAlign: "center"
-          }}
-        >
-          {/* 現在保管中のワード: {localWordData.length} */}
-        </p>
         {
-          // WordItemをmapで並べるとbuild時にエラーが出るっぽい
-          JSON.parse(wordArr)?.map((a: Word | any) => {
+          // mapをparsedWordsに対して実行し、不正なデータでクラッシュしないように。
+          parsedWords.map((w: Word) => {
+          // limitedWords.map((w: Word) => {
             return (
-              // 基本一列にする
-              <WordItem
-                key={a.id}
-                itemIndex={a.id}
-                word={a.word}
-                isFav={a.fav}
-                onChangeFav={toggleFav}
-                // changeFavId={a.id}
-                onClickCopy={copyWord}
-                onClickDel={delWord}
-                // delId={a.id}
-              />
+                <Wrapper key={w.id}>
+                  <Item $isFav={w.fav} >
+                    <CheckboxWrapper>
+                      <Checkbox
+                        type="checkbox"
+                        checked={w.fav}
+                        onChange={() => toggleFav(w.id)}
+                      />
+                    </CheckboxWrapper>
+                    <WordItemSpace $isFav={w.fav} onClick={() => copyWord(w.word)}>
+                      {w.word}
+                    </WordItemSpace>
+                    <WordItemDelBtn onClick={
+                      () => delWord(w.id, w.word)
+                    }>
+                      <Image src={delIcon} />
+                    </WordItemDelBtn>
+                  </Item>
+                </Wrapper>
             )
           })
         }

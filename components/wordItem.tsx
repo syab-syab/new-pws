@@ -1,13 +1,12 @@
 // 登録したワードをリストにする
 import styled from "styled-components"
-import delIcon from "data-base64:~assets/del-64.svg"
 
 const borderPx: string = "1px"
 
 const borderColor: string = "#838383"
 
 
-const Wrapper = styled.div`
+export const Wrapper = styled.div`
   vertical-align: middle;
   display: block;
   width: 100%;
@@ -21,7 +20,7 @@ const normalColor: string = `
   background: #D9D9D9;
 `
 
-const Item = styled.div<{$isFav: boolean}>`
+export const Item = styled.div<{$isFav: boolean}>`
   ${
     props => props.$isFav ? favColor : normalColor
   }
@@ -33,13 +32,13 @@ const Item = styled.div<{$isFav: boolean}>`
   font-size: 30px;
 `
 
-const CheckboxWrapper = styled.div`
+export const CheckboxWrapper = styled.div`
   flex-grow: 1;
   border-right: ${borderPx} ${borderColor} solid;
   text-align: center;
 `
 
-const Checkbox = styled.input`
+export const Checkbox = styled.input`
   width: 20px;
   height: 20px;
 `
@@ -54,7 +53,7 @@ const normalScroll: string = `
 
 // widthを指定しないとoverflow: hidden;が効かない
 // anyはbooleanに直す
-const WordItemSpace = styled.div<{$isFav?: boolean}>`
+export const WordItemSpace = styled.div<{$isFav?: boolean}>`
   ${
     props => props.$isFav ? favScroll : normalScroll
   }
@@ -74,7 +73,7 @@ const WordItemSpace = styled.div<{$isFav?: boolean}>`
 `
 
 
-const WordItemDelBtn = styled.div`
+export const WordItemDelBtn = styled.div`
   & {
     flex-grow: 1;
     border-left: ${borderPx} ${borderColor} solid;
@@ -89,48 +88,45 @@ const WordItemDelBtn = styled.div`
 
 `
 
-const Image = styled.img`
+export const Image = styled.img`
   width: 20px;
   height: 20px;
 `
 
 
 
-type Props = {
-  itemIndex: number,
-  word: string,
-  isFav: boolean,
-  onChangeFav: (id: number) => void,
-  // changeFavId: number,
-  onClickCopy: (val: string) => void,
-  onClickDel: (id: number, val: string) => void,
-  // delId: number
-}
+// type Props = {
+//   itemIndex: number,
+//   word: string,
+//   isFav: boolean,
+//   onChangeFav: (id: number) => void,
+//   onClickCopy: (val: string) => void,
+//   onClickDel: (id: number, val: string) => void,
+// }
 
 
 // ここだけsidepanelに移動してみる
-export const WordItem = (props: Props) => {
-  return (
-    <Wrapper>
-      <Item $isFav={props.isFav} >
-        <CheckboxWrapper>
-          <Checkbox
-            type="checkbox"
-            checked={props.isFav}
-            // onChange={() => props.onChangeFav(props.changeFavId)}
-            onChange={() => props.onChangeFav(props.itemIndex)}
-          />
-        </CheckboxWrapper>
-        <WordItemSpace $isFav={props.isFav} onClick={() => props.onClickCopy(props.word)}>
-          {props.word}
-        </WordItemSpace>
-        <WordItemDelBtn onClick={
-          // () => props.onClickDel(props.delId, props.word)
-          () => props.onClickDel(props.itemIndex, props.word)
-        }>
-          <Image src={delIcon} />
-        </WordItemDelBtn>
-      </Item>
-    </Wrapper>
-  )
-}
+// export const WordItem = (props: Props) => {
+//   return (
+//     <Wrapper>
+//       <Item $isFav={props.isFav} >
+//         <CheckboxWrapper>
+//           <Checkbox
+//             type="checkbox"
+//             checked={props.isFav}
+//             onChange={() => props.onChangeFav(props.itemIndex)}
+//           />
+//         </CheckboxWrapper>
+//         <WordItemSpace $isFav={props.isFav} onClick={() => props.onClickCopy(props.word)}>
+//           {props.word}
+//         </WordItemSpace>
+//         <WordItemDelBtn onClick={
+//           // () => props.onClickDel(props.delId, props.word)
+//           () => props.onClickDel(props.itemIndex, props.word)
+//         }>
+//           <Image src={delIcon} />
+//         </WordItemDelBtn>
+//       </Item>
+//     </Wrapper>
+//   )
+// }
