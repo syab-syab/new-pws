@@ -5,8 +5,6 @@ import { storageWordKey } from "~variables/storageWordKey"
 import { Header } from "~components/header"
 import { AddWordForm } from "~components/addWordForm"
 import { WordItem } from "~components/wordItem"
-// import { updateContextMenus } from "~background"
-
 
 function IndexSidePanel() {
 
@@ -18,6 +16,20 @@ function IndexSidePanel() {
   const [wordArr, setWordArr] = useStorage<string>(storageWordKey, JSON.stringify(words))
   const [tmpData, setTmpData] = useState<string>("")
   const [propFav, setPropFav] = useState<string>("normal")
+
+  // バックグラウンドへのメッセージング
+  const handleUpdateMenus = () => {
+    chrome.runtime.sendMessage(
+      { action: "updateContextMenus" },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          console.error("エラー:", chrome.runtime.lastError);
+        } else {
+          console.log("コンテキストメニューが更新されました:", response);
+        }
+      }
+    )
+  }
 
   // popup, sidepanel共通
   // ワード追加
@@ -33,6 +45,7 @@ function IndexSidePanel() {
     // 値を格納
     tmpArr.push(tmpWord)
     setWordArr(JSON.stringify(tmpArr))
+    handleUpdateMenus()
     setTmpData("")
     // sidepanelとoptionsは状態の初期化とアラートは不要
   }
@@ -46,9 +59,12 @@ function IndexSidePanel() {
       const newArr: Array<Word | any> = tmpArr.filter(a => a.id !== id)
       // ストレージに格納
       setWordArr(JSON.stringify(newArr))
+      handleUpdateMenus()
       alert(`「${val}」を削除しました。`)
     }
   }
+
+
 
   // お気に入り編集
   const toggleFav = (id: number) => {
@@ -61,6 +77,7 @@ function IndexSidePanel() {
       }
     })
     setWordArr(JSON.stringify(tmpArr))
+    handleUpdateMenus()
   }
 
   // コピー関数

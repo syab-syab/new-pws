@@ -17,6 +17,20 @@ function IndexPopup() {
   // お気に入り登録するかどうかは真偽値の方が良いかもしれんがとりあえず
   const [propFav, setPropFav] = useState<string>("normal")
 
+  // backgroundへのメッセージング
+  const handleUpdateMenus = () => {
+    chrome.runtime.sendMessage(
+      { action: "updateContextMenus" },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          console.error("エラー:", chrome.runtime.lastError);
+        } else {
+          console.log("コンテキストメニューが更新されました:", response);
+        }
+      }
+    );
+  };
+
   // popup, options, sidepanel共通
   // ワード追加
   const addWordArr = (val: string) => {
@@ -33,6 +47,7 @@ function IndexPopup() {
     setWordArr(JSON.stringify(tmpArr))
     setTmpData("")
     setPropFav("normal")
+    handleUpdateMenus()
     alert(`${val}: ${tmpWord.fav ? "お気に入り" : ""}登録完了`)
   }
 
