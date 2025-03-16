@@ -1,8 +1,8 @@
 {
-  "name": "new-pws",
-  "displayName": "New pws",
+  "name": "private-word-stock-extension",
+  "displayName": "Private Word Stock",
   "version": "0.0.1",
-  "description": "private word stock new version",
+  "description": "コピーしたワードをストックしておいて、好きな時にペースト可能。",
   "author": "syab-syab",
   "scripts": {
     "dev": "plasmo dev",

@@ -13,7 +13,7 @@ import {
   WordItemDelBtn,
   Image
 } from "~components/wordItem"
-import delIcon from "data-base64:~assets/del-64.svg"
+import delIcon from "data-base64:~assets/del-64.png"
 
 function IndexSidePanel() {
   // ↓修正点
@@ -101,6 +101,8 @@ function IndexSidePanel() {
   return (
     <>
       <Header />
+      {/* [TODO] */}
+      {/* サイドパネルは登録したワードの管理だけで新規登録する必要はないかも */}
       <AddWordForm
         onChangeTextArea={setTmpData}
         textAreaValue={tmpData}
@@ -133,6 +135,7 @@ function IndexSidePanel() {
                       () => delWord(w.id, w.word)
                     }>
                       <Image src={delIcon} />
+                      {/* del */}
                     </WordItemDelBtn>
                   </Item>
                 </Wrapper>
