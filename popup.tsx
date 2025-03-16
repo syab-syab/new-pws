@@ -46,7 +46,6 @@ function IndexPopup() {
     tmpArr.push(tmpWord)
     setWordArr(JSON.stringify(tmpArr))
     setTmpData("")
-    setPropFav("normal")
     handleUpdateMenus()
     alert(`${val}: ${tmpWord.fav ? "お気に入り" : ""}登録完了`)
   }
