@@ -13,17 +13,16 @@ import {
   WordItemDelBtn,
   Image
 } from "~components/wordItem"
+// svgファイルだとbuild時にエラーが出るのでpng
 import delIcon from "data-base64:~assets/del-64.png"
 
 function IndexSidePanel() {
-  // ↓修正点
   const words: Word[] = []; // 型を明確化
 
   const [wordArr, setWordArr] = useStorage<string>(storageWordKey, JSON.stringify(words))
   const [tmpData, setTmpData] = useState<string>("")
   const [propFav, setPropFav] = useState<string>("normal")
 
-  // 新しい関数
   // parsedWordsを即時関数で定義し、JSON.parseのエラー処理を追加。
   const parsedWords: Word[] = (() => {
     try {
@@ -48,13 +47,12 @@ function IndexSidePanel() {
     )
   }
 
+  // ワードの追加
   const addWordArr = (val: string) => {
-    // const tmpArr: Array<Word | any> = JSON.parse(wordArr).slice()
     const tmpArr = parsedWords.slice();
     const tmpWord: Word = {
       id: Date.now(),
       word: val,
-      // fav: propFav === "fav" ? true : false
       fav: propFav === "fav"
     }
     tmpArr.push(tmpWord)
@@ -63,10 +61,9 @@ function IndexSidePanel() {
     setTmpData("")
   }
 
+  // ワードの削除
   const delWord = (id: number, val: string) => {
     if (confirm(`「${val}」を削除しますか？`)) {
-      // const tmpArr: Array<Word | any> = JSON.parse(wordArr).slice()
-      // const newArr: Array<Word | any> = tmpArr.filter(a => a.id !== id)
       const newArr = parsedWords.filter(a => a.id !== id);
       setWordArr(JSON.stringify(newArr))
       handleUpdateMenus()
@@ -75,15 +72,9 @@ function IndexSidePanel() {
   }
 
 
-
+  // ワードのお気に入り管理
   const toggleFav = (id: number) => {
-    // const tmpArr: Array<Word | any> = JSON.parse(wordArr).slice()
     const tmpArr = parsedWords.slice();
-    // tmpArr.map((v: Word) => {
-    //   if (v.id === id) {
-    //     v.fav = !v.fav
-    //   }
-    // })
     tmpArr.forEach((v: Word) => {
       if (v.id === id) v.fav = !v.fav;
     });
@@ -91,18 +82,17 @@ function IndexSidePanel() {
     handleUpdateMenus()
   }
 
+  // ワードのコピー
   const copyWord = (val: string) => {
     navigator.clipboard.writeText(val)
     alert(`「${val}」をコピーしました。`)
   }
 
-  // const limitedWords = parsedWords.slice(0, 100);
 
   return (
     <>
       <Header />
-      {/* [TODO] */}
-      {/* サイドパネルは登録したワードの管理だけで新規登録する必要はないかも */}
+      {/* ポップアップにあるから追加フォームは要らないかも */}
       <AddWordForm
         onChangeTextArea={setTmpData}
         textAreaValue={tmpData}
@@ -110,14 +100,21 @@ function IndexSidePanel() {
         onClickSubscribeBtn={addWordArr}
         subscribeValue={tmpData}
       />
-
+      <p
+        style={{
+          fontSize: "20px",
+          margin: "5px",
+          textAlign: "center",
+          letterSpacing: "1px"
+        }}
+      >
+        ストック数: {parsedWords.length}
+      </p>
       <div
-        style={{marginTop: "10px"}}
+        // style={{marginTop: "10px"}}
       >
         {
-          // mapをparsedWordsに対して実行し、不正なデータでクラッシュしないように。
           parsedWords.map((w: Word) => {
-          // limitedWords.map((w: Word) => {
             return (
                 <Wrapper key={w.id}>
                   <Item $isFav={w.fav} >
