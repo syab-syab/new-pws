@@ -1,7 +1,7 @@
 {
   "name": "private-word-stock-extension",
   "displayName": "Private Word Stock",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "コピーしたワードをストックしておいて、好きな時にペースト可能。",
   "author": "syab-syab",
   "scripts": {
@@ -10,7 +10,6 @@
     "package": "plasmo package"
   },
   "dependencies": {
-    "@plasmohq/messaging": "^0.7.1",
     "@plasmohq/storage": "^1.15.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
